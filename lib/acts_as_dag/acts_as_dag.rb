@@ -96,8 +96,6 @@ module ActsAsDAG
 
       extend ActsAsDAG::ClassMethods
       include ActsAsDAG::InstanceMethods
-      extend ActsAsDAG::Deprecated::ClassMethods
-      include ActsAsDAG::Deprecated::InstanceMethods
     end
   end
 
