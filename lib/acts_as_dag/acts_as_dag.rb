@@ -19,9 +19,6 @@ module ActsAsDAG
           belongs_to :parent,     :class_name => '#{self.name}', :foreign_key => :parent_id, :inverse_of => :child_links, :optional => true
           belongs_to :child,      :class_name => '#{self.name}', :foreign_key => :child_id, :inverse_of => :parent_links
 
-          after_save Proc.new {|link| HelperMethods.update_transitive_closure_for_new_link(link) }
-          after_destroy Proc.new {|link| HelperMethods.update_transitive_closure_for_destroyed_link(link) }
-
           def node_class; #{self.name} end
         end
 
@@ -264,9 +261,9 @@ module ActsAsDAG
 
 
       # The parent and all its ancestors need to be added as ancestors of the child
+      ancestor_ids_and_distance = klass.descendant_table_entries.where(:descendant_id => new_link.parent_id).pluck(:ancestor_id, :distance)
       # The child and all its descendants need to be added as descendants of the parent
-      ancestor_ids_and_distance = klass.descendant_table_entries.where(:descendant_id => new_link.parent_id).pluck(:ancestor_id, :distance) # (totem => totem pole), (totem_pole => totem_pole)
-      descendant_ids_and_distance = klass.descendant_table_entries.where(:ancestor_id => new_link.child_id).pluck(:descendant_id, :distance) # (totem pole model => totem pole model)
+      descendant_ids_and_distance = klass.descendant_table_entries.where(:ancestor_id => new_link.child_id).pluck(:descendant_id, :distance)
 
       ancestor_ids_and_distance.each do |ancestor_id, ancestor_distance|
         descendant_ids_and_distance.each do |descendant_id, descendant_distance|
@@ -321,7 +318,6 @@ module ActsAsDAG
     # Then we create a descendant link between it and all nodes in the array we were passed (nodes traversed between it and all its ancestors affected by the unlinking).
     # Then iterate to all children of the current node passing the ancestor array along
     def self.rebuild_subtree_links(current, path = [])
-      indent = Array.new(path.size, "  ").join
       klass = current.class
 
       # Add current to the list of traversed nodes that we will pass to the children we decide to recurse to
@@ -333,7 +329,7 @@ module ActsAsDAG
       end
 
       # Now check each child to see if it is a descendant, or if we need to recurse
-      for child in current.children
+      current.children.each do |child|
         rebuild_subtree_links(child, path.dup)
       end
     end
@@ -342,6 +338,9 @@ module ActsAsDAG
   # CLASSES (for providing hooks)
   class AbstractLink < ActiveRecord::Base
     self.abstract_class = true
+
+    after_save { |link| HelperMethods.update_transitive_closure_for_new_link(link) }
+    after_destroy { |link| HelperMethods.update_transitive_closure_for_destroyed_link(link) }
 
     validate :not_self_referential
 
