@@ -6,17 +6,13 @@ describe 'acts_as_dag' do
   end
 
   shared_examples_for "DAG Model" do
-    let (:grandpa) { klass.create(:name => 'grandpa') }
-    let (:dad) { klass.create(:name => 'dad') }
-    let (:mom) { klass.create(:name => 'mom') }
-    let (:suzy) { klass.create(:name => 'suzy') }
-    let (:billy) { klass.create(:name => 'billy') }
+    let(:grandpa) { klass.create(:name => 'grandpa') }
+    let(:dad) { klass.create(:name => 'dad') }
+    let(:mom) { klass.create(:name => 'mom') }
+    let(:suzy) { klass.create(:name => 'suzy') }
+    let(:billy) { klass.create(:name => 'billy') }
 
     describe '#children' do
-      it "returns an ActiveRecord::Relation" do
-        expect(mom.children).to be_an(ActiveRecord::Relation)
-      end
-
       it "includes all children of the receiver" do
         mom.add_child(suzy, billy)
         expect(mom.children).to include(suzy,billy)
@@ -34,10 +30,6 @@ describe 'acts_as_dag' do
     end
 
     describe '#parents' do
-      it "returns an ActiveRecord::Relation" do
-        expect(mom.parents).to be_an(ActiveRecord::Relation)
-      end
-
       it "includes all parents of the receiver" do
         suzy.add_parent(mom, dad)
         expect(suzy.parents).to include(mom, dad)
@@ -56,10 +48,6 @@ describe 'acts_as_dag' do
     end
 
     describe '#descendants' do
-      it "returns an ActiveRecord::Relation" do
-        expect(mom.descendants).to be_an(ActiveRecord::Relation)
-      end
-
       it "doesn't include self" do
         expect(mom.descendants).not_to include(mom)
       end
@@ -93,10 +81,6 @@ describe 'acts_as_dag' do
     end
 
     describe '#subtree' do
-      it "returns an ActiveRecord::Relation" do
-        expect(mom.subtree).to be_an(ActiveRecord::Relation)
-      end
-
       it "includes self" do
         expect(mom.subtree).to include(mom)
       end
@@ -129,10 +113,6 @@ describe 'acts_as_dag' do
     end
 
     describe '#ancestors' do
-      it "returns an ActiveRecord::Relation" do
-        expect(mom.ancestors).to be_an(ActiveRecord::Relation)
-      end
-
       it "doesn't include self" do
         expect(mom.ancestors).not_to include(mom)
       end
@@ -165,10 +145,6 @@ describe 'acts_as_dag' do
     end
 
     describe '#path' do
-      it "returns an ActiveRecord::Relation" do
-        expect(mom.path).to be_an(ActiveRecord::Relation)
-      end
-
       it "includes self" do
         expect(mom.path).to include(mom)
       end
@@ -368,10 +344,6 @@ describe 'acts_as_dag' do
     end
 
     describe '#lineage' do
-      it "returns an ActiveRecord::Relation" do
-        expect(mom.children).to be_an(ActiveRecord::Relation)
-      end
-
       it "doesn't include the receiver" do
         expect(mom.lineage).not_to include(mom)
       end
@@ -390,10 +362,6 @@ describe 'acts_as_dag' do
     end
 
     describe '::children' do
-      it "returns an ActiveRecord::Relation" do
-        expect(klass.children).to be_an(ActiveRecord::Relation)
-      end
-
       it "returns records that have at least 1 parent" do
         mom.add_parent(grandpa)
         mom.add_child(suzy)
@@ -413,10 +381,6 @@ describe 'acts_as_dag' do
     end
 
     describe '::parent_records' do
-      it "returns an ActiveRecord::Relation" do
-        expect(klass.parent_records).to be_an(ActiveRecord::Relation)
-      end
-
       it "returns records that have at least 1 child" do
         mom.add_parent(grandpa)
         mom.add_child(suzy)
@@ -811,40 +775,6 @@ describe 'acts_as_dag' do
         end
       end
     end
-
-    # describe "Includes, Eager-Loads, and Preloads" do
-    #   before(:each) do
-    #     dad.add_parent(grandpa)
-    #     billy.add_parent(dad, mom)
-    #   end
-
-    #   it "should preload path in the correct order" do
-    #     records = klass.order("#{klass.table_name}.id asc").preload(:path)
-
-    #     records[0].path.should == [grandpa]                      # grandpa
-    #     records[1].path.should == [grandpa, dad]                # dad
-    #     records[2].path.should == [mom]                          # mom
-    #     records[3].path.should == [grandpa, dad, mom, billy]  # billy
-    #   end
-
-    #   it "should eager_load path in the correct order" do
-    #     records = klass.order("#{klass.table_name}.id asc").eager_load(:path)
-
-    #     records[0].path.should == [grandpa]                      # grandpa
-    #     records[1].path.should == [grandpa, dad]                # dad
-    #     records[2].path.should == [mom]                          # mom
-    #     records[3].path.should == [grandpa, dad, mom, billy]  # billy
-    #   end
-
-    #   it "should include path in the correct order" do
-    #     records = klass.order("#{klass.table_name}.id asc").includes(:path)
-
-    #     records[0].path.should == [grandpa]                      # grandpa
-    #     records[1].path.should == [grandpa, dad]                # dad
-    #     records[2].path.should == [mom]                          # mom
-    #     records[3].path.should == [grandpa, dad, mom, billy]  # billy
-    #   end
-    # end
   end
 
   describe "models with separate link tables" do

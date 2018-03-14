@@ -227,8 +227,8 @@ module ActsAsDAG
     # CALLBACKS
 
     def initialize_dag
-      subtree_links.first_or_create!(:descendant_id => self.id, :distance => 0) # Self Descendant
-      parent_links.first_or_create!(:parent_id => nil) # Root link
+      subtree_links.find_or_create_by!(:descendant_id => self.id, :distance => 0) # Self Descendant
+      parent_links.find_or_create_by!(:parent_id => nil) # Root link
     end
   end
 
@@ -259,8 +259,8 @@ module ActsAsDAG
       # If we're passing :parents or :children to a new record as part of #create, transitive closure on the nested records will
       # be updated before the new record's after save calls :initialize_dag. We ensure it's been initalized before we start querying
       # its descendant_table or it won't appear as an ancestor or descendant until too late.
-      new_link.parent.send(:initialize_dag) if new_link.parent && new_link.parent.id_changed?
-      new_link.child.send(:initialize_dag) if new_link.child && new_link.child.id_changed?
+      new_link.parent.send(:initialize_dag) if new_link.parent.try(:id_previously_changed?)
+      new_link.child.send(:initialize_dag) if new_link.child.try(:id_previously_changed?)
 
 
       # The parent and all its ancestors need to be added as ancestors of the child
