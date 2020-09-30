@@ -80,9 +80,9 @@ module ActsAsDAG
 
       # NOTE: Use select to prevent ActiveRecord::ReadOnlyRecord if the returned records are modified
       scope :roots,               lambda { joins(:parent_links).where(link_class.table_name => {:parent_id => nil}) }
-      scope :leaves,               lambda { joins("LEFT OUTER JOIN #{link_class.table_name} ON #{table_name}.id = parent_id").where(link_class.table_name => {:child_id => nil}).uniq }
-      scope :children,            lambda { joins(:parent_links).where.not(link_class.table_name => {:parent_id => nil}).uniq }
-      scope :parent_records,      lambda { joins(:child_links).where.not(link_class.table_name => {:child_id => nil}).uniq }
+      scope :leaves,               lambda { joins("LEFT OUTER JOIN #{link_class.table_name} ON #{table_name}.id = parent_id").where(link_class.table_name => {:child_id => nil}).distinct }
+      scope :children,            lambda { joins(:parent_links).where.not(link_class.table_name => {:parent_id => nil}).distinct }
+      scope :parent_records,      lambda { joins(:child_links).where.not(link_class.table_name => {:child_id => nil}).distinct }
 
       scope :ancestors_of,        lambda {|record| joins(:descendant_links).where("descendant_id = ?", record) }
       scope :descendants_of,      lambda {|record| joins(:ancestor_links).where("ancestor_id = ?", record) }
